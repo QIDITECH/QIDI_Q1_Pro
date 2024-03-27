@@ -11,7 +11,7 @@ For convenience, QIDI provides version-specific packaged files. Please download 
 
 **Note**: Post-update, the Klipper configuration file will be overwritten. The former configuration file will be renamed to printer_{datetime}.cfg as a backup, and the printer will require recalibration.
 
-**1.** Fixed an issue where, under certain conditions, WLAN settings could prevent updates. 
+**1.** Fixed an issue where, under certain conditions, WLAN settings could prevent booting. 
 
 **2.** Parameters in the gcode_macro.cfg file have been modified.
 
