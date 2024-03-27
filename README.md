@@ -7,14 +7,13 @@ QIDI_Q1_Pro is a server-side application designed specifically for the Q1_Pro mo
 
 For convenience, QIDI provides version-specific packaged files. Please download the necessary compressed package file prefixed with "Q1_Pro." We offer several versions of the source code tailored to different needs; select the appropriate branch for download, with each branch name reflecting the corresponding version.
 
-## Update Content for Version 4.4.15
+## Update Content for Version 4.4.16
 
 **Note**: Post-update, the Klipper configuration file will be overwritten. The former configuration file will be renamed to printer_{datetime}.cfg as a backup, and the printer will require recalibration.
 
-1. Introduce an online update feature.
-2. Implement support for the QIDI Link service.
-3. Enhance the logic for canceling printing tasks.
-4. Incorporate a feature for power failure recovery.
+**1.** Fixed an issue where, under certain conditions, WLAN settings could prevent updates. 
+
+**2.** Parameters in the gcode_macro.cfg file have been modified.
 
 ## Detailed update process
 
