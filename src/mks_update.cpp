@@ -122,38 +122,65 @@ bool detect_update()
     // 4.4.3 CLL 新增deb文件也能更新
     int fd_soc_deb;
 
-    fd_soc_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC", F_OK);
-    if (fd_soc_data == 0)
-    {
-        detected_soc_data = true;
-    }
-    else
-    {
-        detected_soc_data = false;
-        fd_soc_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC", F_OK);
-        if (fd_soc_data == 0)
-        {
-            detected_q1_soc_data = true;
-        }
-        else
-        {
-            detected_q1_soc_data = false;
-        }
-    }
+    // fd_soc_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC", F_OK);
+    // if (fd_soc_data == 0)
+    // {
+    //     detected_soc_data = true;
+    // }
+    // else
+    // {
+    //     detected_soc_data = false;
+    //     fd_soc_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC", F_OK);
+    //     if (fd_soc_data == 0)
+    //     {
+    //         detected_q1_soc_data = true;
+    //     }
+    //     else
+    //     {
+    //         detected_q1_soc_data = false;
+    //     }
+    // }
 
     if ((dir = opendir(base_path.c_str())) != nullptr)
     {
         while ((entry = readdir(dir)) != nullptr)
         {
             std::string filename = entry->d_name;
+            // 跳过以 .bak 结尾的文件
+            if (filename.rfind(".bak") == filename.length() - 4) {
+                continue;
+            }
+
             if (filename.find("QD_Q1_PATCH") == 0)
             {
-                detected_q1_patch_data = true; // 找到 QD_Q1_PATCH 开头文件
-                break;
+                detected_q1_patch_data = true;
+                continue;
+            }
+            if (filename.find("QD_Q1_UI") == 0)
+            {
+                detected_q1_ui_data = true;
+                continue;
+            }
+            if (filename.find("QD_Q1_SOC") == 0)
+            {
+                detected_q1_soc_data = true;
+                continue;
+            }
+            if (filename.find("QD_Mates3_UI") == 0)
+            {
+                detected_ui_data = true;
+                continue;
+            }
+            if (filename.find("QD_Mates3_SOC") == 0)
+            {
+                detected_soc_data = true;
+                continue;
             }
         }
         closedir(dir);
     }
+    else
+        printf("Usb device path not found: %s\n", base_path.c_str());
 
     fd_mcu_data = access("/home/mks/gcode_files/sda1/QD_MCU/MCU", F_OK);
     if (fd_mcu_data == 0)
@@ -165,25 +192,25 @@ bool detect_update()
         detected_mcu_data = false;
     }
 
-    fd_ui_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI", F_OK);
+    // fd_ui_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI", F_OK);
 
-    if (fd_ui_data == 0)
-    {
-        detected_ui_data = true;
-    }
-    else
-    {
-        detected_ui_data = false;
-        fd_ui_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI", F_OK);
-        if (fd_ui_data == 0)
-        {
-            detected_q1_ui_data = true;
-        }
-        else
-        {
-            detected_q1_ui_data = false;
-        }
-    }
+    // if (fd_ui_data == 0)
+    // {
+    //     detected_ui_data = true;
+    // }
+    // else
+    // {
+    //     detected_ui_data = false;
+    //     fd_ui_data = access("/home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI", F_OK);
+    //     if (fd_ui_data == 0)
+    //     {
+    //         detected_q1_ui_data = true;
+    //     }
+    //     else
+    //     {
+    //         detected_q1_ui_data = false;
+    //     }
+    // }
 
     fd_gcode_cfg = access("/home/mks/gcode_files/sda1/QD_Update/gcode_macro.cfg", F_OK);
     if (fd_gcode_cfg == 0)
@@ -246,6 +273,11 @@ void start_update()
 {
     system("rm /home/mks/gcode_files/.cache/*");
 
+    bool factory_mode = (
+        access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) != -1 ||
+        access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) != -1
+    );
+
     if (detected_mcu_data == true)
     {
         if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
@@ -282,42 +314,42 @@ void start_update()
         }
     }
 
-    if (detected_ui_data == true)
-    {
-        if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
-        {
-            system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; sync");
-        }
-        else
-        {
-            if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
-            {
-                system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; sync");
-            }
-            else
-            {
-                system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI.bak; sync");
-            }
-        }
-    }
-    else if (detected_q1_ui_data == true)
-    {
-        if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
-        {
-            system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; sync");
-        }
-        else
-        {
-            if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
-            {
-                system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; sync");
-            }
-            else
-            {
-                system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI.bak; sync");
-            }
-        }
-    }
+    // if (detected_ui_data == true)
+    // {
+    //     if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
+    //     {
+    //         system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; sync");
+    //     }
+    //     else
+    //     {
+    //         if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
+    //         {
+    //             system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; sync");
+    //         }
+    //         else
+    //         {
+    //             system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /root/800_480.tft; mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_UI.bak; sync");
+    //         }
+    //     }
+    // }
+    // else if (detected_q1_ui_data == true)
+    // {
+    //     if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
+    //     {
+    //         system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; sync");
+    //     }
+    //     else
+    //     {
+    //         if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
+    //         {
+    //             system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; sync");
+    //         }
+    //         else
+    //         {
+    //             system("cp /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /root/800_480.tft; mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI /home/mks/gcode_files/sda1/QD_Update/QD_Q1_UI.bak; sync");
+    //         }
+    //     }
+    // }
 
     if (detected_gcode_cfg == true)
     {
@@ -386,17 +418,49 @@ void start_update()
         system("cp /home/mks/gcode_files/sda1/QD_Update/QD_gcode/*.gcode /home/mks/gcode_files; chmod 777 /home/mks/gcode_files/*.gcode; sync");
     }
 
-    // 检测到补丁文件
-    if (detected_q1_patch_data)
+    // 检测到UI文件
+    if (detected_ui_data || detected_q1_ui_data) {
+
+        if ((dir = opendir(base_path.c_str())) != nullptr) 
+        {
+            while ((entry = readdir(dir)) != nullptr) 
+            {
+                std::string filename = entry->d_name;
+
+                // 模糊匹配UI文件
+                if (filename.find("QD_Q1_UI") == 0 || filename.find("QD_Mates3_UI") == 0) 
+                {
+                    std::string filePath = base_path + filename;
+                    std::string command = "cp " + filePath + " /root/800_480.tft; ";
+
+                    if (!factory_mode) {
+                        command += "mv " + filePath + " " + filePath + ".bak; ";
+                    }
+                    
+                    command += "sync";
+                    system(command.c_str());
+                    break; // 每次更新只处理一个UI文件
+                }
+            }
+            closedir(dir);
+        } 
+        else 
+        {
+            printf("Directory not found: %s\n", base_path.c_str());
+        }
+    }
+
+    // 检测到SOC或者PATCH文件
+    if (detected_q1_patch_data || detected_q1_soc_data || detected_soc_data)
     {
-        bool factory_mode = (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) != -1);
 
         if ((dir = opendir(base_path.c_str())) != nullptr)
         {
             while ((entry = readdir(dir)) != nullptr)
             {
                 std::string filename = entry->d_name;
-                if (filename.find("QD_Q1_PATCH") == 0)
+                if (filename.rfind(".bak") != std::string::npos) continue;
+                if (filename.find("QD_Q1_PATCH") == 0 || filename.find("QD_Q1_SOC") == 0 || filename.find("QD_Mate3_SOC") == 0)
                 {
                     std::string file_path = base_path + filename;
                     std::string command = "mv " + file_path + " " + base_path + "mks.deb; dpkg -i --force-overwrite " + base_path + "mks.deb;";
@@ -415,57 +479,62 @@ void start_update()
             }
             closedir(dir);
         }
+        else 
+        {
+            printf("Directory not found: %s\n", base_path.c_str());
+        }
     }
 
-    if (detected_soc_data == true)
-    {
-        if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
-        {
-            std::cout << "检测到qidi文件" << std::endl;
-            system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC; sync;");
-        }
-        else
-        {
-            if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
-            {
-                std::cout << "检测到qidi文件" << std::endl;
-                system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC; sync;");
-            }
-            else
-            {
-                std::cout << "没有检测到qidi文件" << std::endl;
-                system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC.bak; sync;");
-            }
-        }
-    }
-    else if (detected_soc_deb == true)
+    // if (detected_soc_data == true)
+    // {
+    //     if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
+    //     {
+    //         std::cout << "检测到qidi文件" << std::endl;
+    //         system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC; sync;");
+    //     }
+    //     else
+    //     {
+    //         if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
+    //         {
+    //             std::cout << "检测到qidi文件" << std::endl;
+    //             system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC; sync;");
+    //         }
+    //         else
+    //         {
+    //             std::cout << "没有检测到qidi文件" << std::endl;
+    //             system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Mates3_SOC.bak; sync;");
+    //         }
+    //     }
+    // }
+    // else if (detected_soc_deb == true)
+    if (detected_soc_deb == true)
     { // 4.4.3 CLL 修改deb文件可以更新
         if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
         {
             system("dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb;sync");
         }
     }
-    else if (detected_q1_soc_data == true)
-    {
-        if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
-        {
-            std::cout << "检测到qidi文件" << std::endl;
-            system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC; sync;");
-        }
-        else
-        {
-            if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
-            {
-                std::cout << "检测到qidi文件" << std::endl;
-                system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC; sync;");
-            }
-            else
-            {
-                std::cout << "没有检测到qidi文件" << std::endl;
-                system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC.bak; sync;");
-            }
-        }
-    }
+    // else if (detected_q1_soc_data == true)
+    // {
+    //     if (access("/home/mks/gcode_files/sda1/QD_factory_mode.txt", F_OK) == 0)
+    //     {
+    //         std::cout << "检测到qidi文件" << std::endl;
+    //         system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC; sync;");
+    //     }
+    //     else
+    //     {
+    //         if (access("/home/mks/gcode_files/sda1/QD_Update/QD_factory_mode.txt", F_OK) == 0)
+    //         {
+    //             std::cout << "检测到qidi文件" << std::endl;
+    //             system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC; sync;");
+    //         }
+    //         else
+    //         {
+    //             std::cout << "没有检测到qidi文件" << std::endl;
+    //             system("mv /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC /home/mks/gcode_files/sda1/QD_Update/mks.deb; dpkg -i --force-overwrite /home/mks/gcode_files/sda1/QD_Update/mks.deb; mv /home/mks/gcode_files/sda1/QD_Update/mks.deb /home/mks/gcode_files/sda1/QD_Update/QD_Q1_SOC.bak; sync;");
+    //         }
+    //     }
+    // }
 
     update_finished_tips();
 }

@@ -38,6 +38,7 @@
 #include "../include/MakerbasePanel.h"
 #include "../include/MakerbaseParseIni.h"
 #include "../include/MakerbaseWiFi.h"
+#include "../include/MakerbaseNetwork.h"
 #include "../include/ui.h"
 #include "../include/send_jpg.h"
 
@@ -392,6 +393,8 @@ std::string target_soc_version;
 bool open_qr_refreshed = false; // CLL 第一次开机刷新时不使用脚本重新生成二维码图片
 extern bool qr_refreshed;
 bool open_reprint_asked = false; // CLL 开机后进入主页面发出检测断电续打指令
+
+int mks_ethernet;
 
 /* 更新页面处理 */
 void refresh_page_show() {
@@ -751,7 +754,7 @@ void refresh_page_auto_level() {
         send_cmd_picc2(tty_fd, "b1", "115");
         send_cmd_picc2(tty_fd, "b2", "116");
         send_cmd_picc2(tty_fd, "b3", "115");
-    } else if (auto_level_dist == (float)1) {
+    } else if (auto_level_dist == (float)0.5) {
         send_cmd_picc(tty_fd, "b0", "114");
         send_cmd_picc(tty_fd, "b1", "114");
         send_cmd_picc(tty_fd, "b2", "114");
@@ -784,6 +787,7 @@ void refresh_page_syntony_move() {
     if (step_1 == true) {
         sleep(15);
         page_to(TJC_PAGE_SYNTONY_FINISH);
+        step_1 = false;
     }
 }
 
@@ -948,6 +952,44 @@ void refresh_page_printing_zoffset() {
     send_cmd_txt(tty_fd, "t1", show_time(get_cal_printing_time((int)(printer_print_stats_print_duration), file_metadata_estimated_time, printer_display_status_progress)));
     send_cmd_val(tty_fd, "j0", std::to_string(printer_display_status_progress));
 
+    if (printer_set_offset == (float)0.01) {
+        send_cmd_picc(tty_fd, "b1", std::to_string(57));
+        send_cmd_picc2(tty_fd, "b1", std::to_string(60));
+        send_cmd_picc(tty_fd, "b2", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
+        send_cmd_picc(tty_fd, "b3", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
+        send_cmd_picc(tty_fd, "b4", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
+    } else if (printer_set_offset == (float)0.05) {
+        send_cmd_picc(tty_fd, "b1", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
+        send_cmd_picc(tty_fd, "b2", std::to_string(57));
+        send_cmd_picc2(tty_fd, "b2", std::to_string(60));
+        send_cmd_picc(tty_fd, "b3", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
+        send_cmd_picc(tty_fd, "b4", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
+    } else if (printer_set_offset == (float)0.1) {
+        send_cmd_picc(tty_fd, "b1", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
+        send_cmd_picc(tty_fd, "b2", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
+        send_cmd_picc(tty_fd, "b3", std::to_string(57));
+        send_cmd_picc2(tty_fd, "b3", std::to_string(60));
+        send_cmd_picc(tty_fd, "b4", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
+    }  else if (printer_set_offset == (float)0.5) {
+        send_cmd_picc(tty_fd, "b1", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
+        send_cmd_picc(tty_fd, "b2", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
+        send_cmd_picc(tty_fd, "b3", std::to_string(58));
+        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
+        send_cmd_picc(tty_fd, "b4", std::to_string(57));
+        send_cmd_picc2(tty_fd, "b4", std::to_string(60));
+    }
+
     if (printer_print_stats_state == "printing") {
         printer_ready = true;
     }
@@ -994,44 +1036,6 @@ void refresh_page_printing_zoffset() {
         cancel_print();
         clear_previous_data();
         send_cmd_txt(tty_fd , "t0", "gcode error:" + error_message);
-    }
-    
-    if (printer_set_offset == (float)0.01) {
-        send_cmd_picc(tty_fd, "b1", std::to_string(57));
-        send_cmd_picc2(tty_fd, "b1", std::to_string(60));
-        send_cmd_picc(tty_fd, "b2", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
-        send_cmd_picc(tty_fd, "b3", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
-        send_cmd_picc(tty_fd, "b4", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
-    } else if (printer_set_offset == (float)0.05) {
-        send_cmd_picc(tty_fd, "b1", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
-        send_cmd_picc(tty_fd, "b2", std::to_string(57));
-        send_cmd_picc2(tty_fd, "b2", std::to_string(60));
-        send_cmd_picc(tty_fd, "b3", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
-        send_cmd_picc(tty_fd, "b4", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
-    } else if (printer_set_offset == (float)0.1) {
-        send_cmd_picc(tty_fd, "b1", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
-        send_cmd_picc(tty_fd, "b2", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
-        send_cmd_picc(tty_fd, "b3", std::to_string(57));
-        send_cmd_picc2(tty_fd, "b3", std::to_string(60));
-        send_cmd_picc(tty_fd, "b4", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b4", std::to_string(59));
-    }  else if (printer_set_offset == (float)1) {
-        send_cmd_picc(tty_fd, "b1", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b1", std::to_string(59));
-        send_cmd_picc(tty_fd, "b2", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b2", std::to_string(59));
-        send_cmd_picc(tty_fd, "b3", std::to_string(58));
-        send_cmd_picc2(tty_fd, "b3", std::to_string(59));
-        send_cmd_picc(tty_fd, "b4", std::to_string(57));
-        send_cmd_picc2(tty_fd, "b4", std::to_string(60));
     }
 }
 
@@ -1630,7 +1634,7 @@ void set_heater_bed_target(int target) {
 }
 
 void set_hot_target(int target) {
-    set_target("chamber", target);
+    ep->Send(json_run_a_gcode("M141 S" + std::to_string(target)));
 }
 
 void set_fan(int speed) {
@@ -1655,6 +1659,13 @@ void set_intern_zoffset(float offset) {
 }
 
 void set_zoffset(bool positive) {
+    // std::string command;
+    // if (positive) {
+    //     command = "curl -s -X POST http://127.0.0.1:7125/printer/modifybabystep?ADJUST=" + std::to_string(printer_set_offset);
+    // } else {
+    //     command = "curl -s -X POST http://127.0.0.1:7125/printer/modifybabystep?ADJUST=-" + std::to_string(printer_set_offset);
+    // }
+    // system(command.c_str());
     if (positive == true) {
         ep->Send(json_run_a_gcode("SET_GCODE_OFFSET Z_ADJUST=+" + std::to_string(printer_set_offset) + " MOVE=1"));
     } else {
@@ -1737,6 +1748,8 @@ void set_print_resume() {
 
 void cancel_print() {
     printer_print_stats_filename = "";
+    system("curl -X POST http://127.0.0.1:7125/printer/breakmacro");
+    system("curl -X POST http://127.0.0.1:7125/printer/breakheater");
     ep->Send(json_run_a_gcode("CANCEL_PRINT"));
     int printed_minutes = get_cal_printed_time((int)(printer_print_stats_print_duration));
     get_mks_total_printed_time();
@@ -1827,10 +1840,18 @@ void move_home_tips() {
 }
 
 void filament_tips() {
-    if (current_page_id == TJC_PAGE_PRINT_FILAMENT) {
+    switch (current_page_id)
+    {
+    case TJC_PAGE_OPEN_FILAMENTVIDEO_3:
+        break;
+    
+    case TJC_PAGE_PRINT_FILAMENT:
         jump_to_print_low_temp = true;
-    } else {
+        break;
+
+    default:
         jump_to_filament_pop_1 = true;
+        break;
     }
 }
 
@@ -2063,7 +2084,19 @@ void go_to_reset() {
     if (printer_webhooks_state == "shutdown") {
         page_to(TJC_PAGE_RESET);
     } else {
+        std::ifstream infile("/dev_info.txt");
+        if (!infile) {
+            std::cerr << "无法打开文件 " << "/dev_info.txt" << std::endl;
+            return;
+        }
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        std::string machine_type = buffer.str();
+        infile.close();
+        machine_type = machine_type.substr(machine_type.find("@") + 1);
         page_to(TJC_PAGE_SYS_OK);
+        std::cout << "machine_type:" << machine_type << std::endl;
+        send_cmd_txt(tty_fd, "t2", machine_type);
     }
 }
 
@@ -2092,12 +2125,16 @@ void go_to_network() {
 }
 
 void scan_ssid_and_show() {
-    get_wlan0_status();
-    mks_wpa_scan_scanresults();
-    get_ssid_list_pages();
-    page_wifi_current_pages = 0;
-    set_page_wifi_ssid_list(page_wifi_current_pages);
-    refresh_page_wifi_list();
+    if (access("/var/run/wpa_supplicant/wlan0", F_OK) == 0){
+        get_wlan0_status();
+        mks_wpa_scan_scanresults();
+        get_ssid_list_pages();
+        page_wifi_current_pages = 0;
+        set_page_wifi_ssid_list(page_wifi_current_pages);
+        refresh_page_wifi_list();
+    } else {
+        page_to(TJC_PAGE_INTERNET);
+    }
 }
 
 void refresh_page_wifi_list() {
@@ -2284,6 +2321,7 @@ void init_mks_status() {
     get_mks_total_printed_time();
     get_mks_babystep();
     get_mks_connection_method();
+    get_mks_ethernet();
     // 不再使用xindi获取zoffset
     // printer_set_babystep();
     /*
@@ -3012,8 +3050,12 @@ void print_log() {
         page_to(TJC_PAGE_PRINT_LOG_F); // CLL 若U盘未插入，提示导出失败，请客户检查U盘插入
     } else {
         system("mkdir /home/mks/gcode_files/sda1/QD_Log");
-        system("cp /home/mks/klipper_logs/klippy.log /home/mks/gcode_files/sda1/QD_Log/klippy.log\n");
-        system("cp /home/mks/klipper_logs/moonraker.log /home/mks/gcode_files/sda1/QD_Log/moonraker.log\n");
+        system("bash -c 'cp /home/mks/klipper_logs/klippy.log* /home/mks/gcode_files/sda1/QD_Log/'");
+        system("bash -c 'cp /home/mks/klipper_logs/moonraker.log* /home/mks/gcode_files/sda1/QD_Log/'");
+        system("bash -c 'cp /home/mks/klipper_logs/auto_update.log* /home/mks/gcode_files/sda1/QD_Log/'");
+        system("bash -c 'cp /root/frp/frpc.log* /home/mks/gcode_files/sda1/QD_Log/'");
+        system("bash -c 'cp /root/frp/frpc.*.log /home/mks/gcode_files/sda1/QD_Log/'");
+        system("cp /root/frp/frpc.toml /home/mks/gcode_files/sda1/QD_Log/frpc.toml");
         page_to(TJC_PAGE_PRINT_LOG_S);
     }
 }
@@ -3168,19 +3210,39 @@ void set_mks_connection_method(int target) {
 }
 
 void refresh_page_show_qr() {
-    send_cmd_txt(tty_fd, "t0", status_result.ip_address);
+    if (mks_ethernet == 0) {
+        send_cmd_txt(tty_fd, "t0", status_result.ip_address);
+        send_cmd_picc(tty_fd, "b4", "268");
+        send_cmd_picc2(tty_fd, "b4", "214");
+    } else {
+        std::string local_ip = get_eth0_ip();
+        send_cmd_txt(tty_fd, "t0", local_ip);
+        send_cmd_picc(tty_fd, "b4", "269");
+        send_cmd_picc2(tty_fd, "b4", "215");
+    }
 }
 
 void go_to_showqr() {
+    std::string qrmessage;
     get_mks_connection_method();
     page_to(TJC_PAGE_SHOW_QR);
-    if (strcmp(status_result.wpa_state, "COMPLETED") == 0) {
+    if (strcmp(status_result.wpa_state, "COMPLETED") == 0 || mks_ethernet) {
         if (qr_refreshed == false) {
             if (open_qr_refreshed == true || access("/home/mks/qrcode/qrcode.jpg", F_OK) == -1)
-                system("python3 /home/mks/qrcode/qrcode_QD.py 176\n");
-            open_qr_refreshed = true;
-            refresh_files_list_picture("/home/mks/qrcode/qrcode.jpg", 176, 0);
-            qr_refreshed = true;
+                qrmessage = run_python_code("python3 /home/mks/qrcode/qrcode_QD.py 176\n");
+            std::cout << "qrmessage:" << qrmessage << std::endl;
+            if (qrmessage.find("Missing or invalid") != -1) {
+                send_cmd_txt(tty_fd, "t4", qrmessage);
+                send_cmd_vis(tty_fd, "t4", "1");
+                send_cmd_cp_close(tty_fd, "cp0");
+            } else if (qrmessage.find("No") != -1) {
+                send_cmd_vis(tty_fd, "t4", "1");
+                send_cmd_cp_close(tty_fd, "cp0");
+            } else {
+                open_qr_refreshed = true;
+                refresh_files_list_picture("/home/mks/qrcode/qrcode.jpg", 176, 0);
+                qr_refreshed = true;
+            }
         }
     } else {
         send_cmd_vis(tty_fd, "t4", "1");
@@ -3199,7 +3261,7 @@ void go_to_server_set(int n) {
     current_server_page = n;
     total_server_count = 0;
     serverConfigs.clear();
-    if (connection_method == 1) {
+    if (connection_method == 1 && strcmp(status_result.wpa_state, "COMPLETED") == 0) {
         page_to(TJC_PAGE_SEARCH_SERVER);
         update_server(0);
         get_mks_selected_server();
@@ -3329,12 +3391,23 @@ void update_server(int choice)
 }
 
 void refresh_page_server_set() {
-    if (connection_method == 0) {
+    if (connection_method == 0 || strcmp(status_result.wpa_state, "COMPLETED") != 0) {
         send_cmd_picc(tty_fd, "b2", "217");
         send_cmd_picc2(tty_fd, "b2", "220");
+        send_cmd_vis(tty_fd, "t3", "1");
+        send_cmd_vis(tty_fd, "t0", "0");
+        send_cmd_vis(tty_fd, "b3", "0");
+        send_cmd_vis(tty_fd, "b4", "0");
+        send_cmd_vis(tty_fd, "b0", "0");
     } else {
         send_cmd_picc(tty_fd, "b2", "218");
         send_cmd_picc2(tty_fd, "b2", "219");
+        send_cmd_vis(tty_fd, "t3", "0");
+        send_cmd_vis(tty_fd, "t0", "1");
+        send_cmd_vis(tty_fd, "b3", "1");
+        send_cmd_vis(tty_fd, "b4", "1");
+        send_cmd_vis(tty_fd, "b0", "1");
+
     }
     
     if (current_server_page == 0) {
@@ -3493,4 +3566,20 @@ void refresh_page_auto_unload() {
         send_cmd_vis(tty_fd, "b0", "1");
         send_cmd_vis(tty_fd, "b1", "1");
     }
+}
+
+int get_mks_ethernet() {
+    mksini_load();
+    mks_ethernet = mksini_getboolean("mks_ethernet", "enable", 0);
+    mksini_free();
+    return mks_ethernet;
+}
+
+void set_mks_ethernet(int target) {
+    std::cout << "设置以太网:" << target << std::endl;
+    mksini_load();
+    mksini_set("mks_ethernet", "enable", std::to_string(target));
+    mksini_save();
+    mksini_free();
+    mks_ethernet = target;
 }
