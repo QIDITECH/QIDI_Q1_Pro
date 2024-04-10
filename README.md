@@ -7,13 +7,22 @@ QIDI_Q1_Pro is a server-side application designed specifically for the Q1_Pro mo
 
 For convenience, QIDI provides version-specific packaged files. Please download the necessary compressed package file prefixed with "Q1_Pro." We offer several versions of the source code tailored to different needs; select the appropriate branch for download, with each branch name reflecting the corresponding version.
 
-## Update Content for Version 4.4.16
+## Update Content for Version 4.4.18
 
-**Note**: Post-update, the Klipper configuration file will be overwritten. The former configuration file will be renamed to printer_{datetime}.cfg as a backup, and the printer will require recalibration.
+**Note:** After updating, the Klipper configuration file will be replaced. The previous configuration file will be backed up as `printer_{datetime}.cfg`, printer recalibration will be required.
 
-**1.** Fixed an issue where, under certain conditions, WLAN settings could prevent booting. 
+**1.** Added port 80 to Fluidd.
 
-**2.** Parameters in the gcode_macro.cfg file have been modified.
+**2.** Fixed the issue where power failure resume could not work.
+
+**3.** Fixed the issue with USB device unmounting failing in certain cases.
+
+**4.** Added Ethernet switching feature.
+
+**5.** Added error prompt for QR code generation.
+
+**6.** Adjusted default parameters.
+
 
 ## Detailed update process
 
