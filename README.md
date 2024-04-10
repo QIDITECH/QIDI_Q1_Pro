@@ -37,7 +37,7 @@ Should you encounter any issues related to machine mechanics, slicing software, 
 
 ## Others
 
-Unlike the typical method of directly accessing the Fluidd web interface via an IP address, the QIDI edition modifies the default port to 10088. Therefore, you must append :10088 to the machine's IP address to access the Fluidd page.
+Unlike the typical method of directly accessing the Fluidd web interface via an IP address, the QIDI edition modifies the default port to 10088. Therefore, you must append :10088 to the machine's IP address to access the Fluidd page. (Default port 80 now has been added after V4.4.18)
 
 QIDI's 3D printers operate based on the Klipper system. Building on the Klipper open-source project, we've tailored its source code to meet specific user requirements. Similarly, we've adapted Moonraker to ensure our designed screens align with web operations. We extend our gratitude to the developers and maintainers of these open-source projects and encourage users to explore or support these robust platforms.
 
