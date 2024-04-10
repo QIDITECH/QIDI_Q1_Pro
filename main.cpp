@@ -1,5 +1,6 @@
 #include <fstream>
 
+
 #include <wpa_ctrl.h>
 
 #include "include/MakerbaseClient.h"
@@ -129,6 +130,39 @@ int main(int argc, char** argv) {
 			system("bash /home/mks/gcode_files/sda1/mks-super.sh");
 		}
 	}
+
+	//4.4.15 CCW 添加开机检测c_helper.so文件
+    const char *sourceFile = "/home/mks/klipper/klippy/chelper/c_helper.so";
+    const char *destFile = "/root/etc/c_helper.so";
+
+    std::ifstream file(sourceFile, std::ifstream::binary | std::ifstream::ate);
+    long size = 0; 
+
+    if (!file) {
+        std::printf("File does not exist or could not open file: %s\n", sourceFile);
+        size = -1; 
+    } else {
+        size = file.tellg(); 
+    }
+    file.close();
+
+    // 检查c_helper.so文件是否正常
+    if (size < 10240) {
+        std::printf("File %s does not exist or is less than 10KB\n", sourceFile);
+        
+        std::ifstream src(destFile, std::ios::binary);
+        std::ofstream dst(sourceFile, std::ios::binary);
+        
+        if (!src || !dst) {
+            std::printf("Failed to open source or destination file\n");
+        } else {
+            dst << src.rdbuf(); // Copy file content
+            std::printf("File %s has been replaced with %s\n", sourceFile, destFile);
+        }
+    } else {
+        std::printf("File %s exists and is not less than 10KB, no action taken\n", sourceFile);
+    }
+
 	// pthread_t monitor_thread;
 	// pthread_t monitor_C3_thread;
 	pthread_t wpa_recv_thread;
@@ -148,7 +182,6 @@ int main(int argc, char** argv) {
 	std::string host = "localhost";
 	std::string url = "ws://localhost:7125/websocket?";
 	MKSLOG("%s", url.data());
-	MKSLOG_RED("TEST");
 
 	if (argc == 2) {
 		host = argv[1];
@@ -207,7 +240,7 @@ int main(int argc, char** argv) {
 			mks_get_version();
 			sleep(3);
 
-            send_cmd_val(tty_fd, "logo.version", "14"); // CLL 检测UI与SOC版本是否匹配4.4.14版本输出标记数字为14
+            send_cmd_val(tty_fd, "logo.version", "18"); // CLL 检测UI与SOC版本是否匹配4.4.18版本输出标记数字为18
             if (find_screen_tft_file == false) {
 				previous_page_id = TJC_PAGE_LOGO;
 				if (get_mks_oobe_enabled() == true) {

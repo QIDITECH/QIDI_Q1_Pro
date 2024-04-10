@@ -39,6 +39,7 @@ extern std::string str_gimage;
 // preview
 
 // wifi start
+extern struct mks_wifi_status_result_t status_result;
 extern int page_wifi_ssid_list_pages;
 extern int page_wifi_current_pages;
 // wifi end
@@ -154,6 +155,8 @@ extern int connection_method;
 
 extern int current_server_page;
 extern int total_server_count;
+
+extern int mks_ethernet;
 
 bool qr_refreshed = false; // CLL 此变量用于标记二维码刷新，仅在切换wifi、切换本地/互联网连接、修改服务器后需要重新刷新
 
@@ -816,8 +819,8 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             set_intern_zoffset(0.1);
             break;
         
-        case TJC_PAGE_PRINT_ZOFFSET_SET_1:
-            set_intern_zoffset(1);
+        case TJC_PAGE_PRINT_ZOFFSET_SET_05:
+            set_intern_zoffset(0.5);
             break;
         
         case TJC_PAGE_PRINT_ZOFFSET_UP:
@@ -1454,8 +1457,8 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             set_auto_level_dist(0.1);
             break;
 
-        case TJC_PAGE_PRE_BED_CALIBRATION_SET_1:
-            set_auto_level_dist(1);
+        case TJC_PAGE_PRE_BED_CALIBRATION_SET_05:
+            set_auto_level_dist(0.5);
             break;
         
         case TJC_PAGE_PRE_BED_CALIBRATION_UP:
@@ -2119,6 +2122,15 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
         case TJC_PAGE_SHOW_QR_WIFI:
             go_to_network();
             break;
+
+        case TJC_PAGE_SHOW_QR_ETHERNET:
+            if (mks_ethernet == 1)
+                set_mks_ethernet(0);
+            else 
+                set_mks_ethernet(1);
+            qr_refreshed = false;
+            go_to_showqr();
+            break;
         
         default:
             break;
@@ -2151,6 +2163,8 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             break;
 
         case TJC_PAGE_SERVER_SET_LOCAL:
+            if (strcmp(status_result.wpa_state, "COMPLETED") != 0)
+                break;
             if (connection_method == 1) {
                 set_mks_connection_method(0);
                 connection_method = 0;

@@ -252,4 +252,7 @@ void *recevice_progress_handle(void *arg);
 
 void refresh_page_auto_unload();
 
+int get_mks_ethernet();
+void set_mks_ethernet(int target);
+
 #endif

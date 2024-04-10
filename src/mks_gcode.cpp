@@ -177,6 +177,8 @@ void parse_gcode_response(nlohmann::json params) {
             }
         } else if (params0 == "!! Insufficient disk space, unable to read the file.") {
             jump_to_memory_warning = true;
+        } else if (params0.find("!! Printer is not ready") != -1) {
+            // CLL 不做处理
         } else if (params0.substr(0, 2) == "!!") {
             error_message = params0;
             detect_error();
