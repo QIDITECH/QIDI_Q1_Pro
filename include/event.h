@@ -255,4 +255,6 @@ void refresh_page_auto_unload();
 int get_mks_ethernet();
 void set_mks_ethernet(int target);
 
+std::string hex_to_utf8(const std::string& hex);
+
 #endif

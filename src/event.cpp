@@ -364,6 +364,8 @@ extern std::string thumbnail_path;
 
 extern bool cache_clicked;
 
+int unhomed_move_mode = 0; // CLL 用于保存上次按下的移动按钮，当触发需先归位操作时进行移动, 1(x up),2(x down),3(y up),4(y down),5(z up),6(z down)
+
 // CLL 以下变量用于修复gcode响应函数和refresh函数之间的冲突(gcode响应函数需设置变量在refresh_page_show中统一改变页面，否则会产生冲突)
 bool jump_to_move_pop_1 = false;
 bool jump_to_move_pop_2 = false;
@@ -404,6 +406,42 @@ void refresh_page_show() {
         page_to(TJC_PAGE_MOVE_POP_1);
     }
     if (jump_to_move_pop_2 == true) {
+        switch (unhomed_move_mode)
+        {
+        case 1: // X_UP
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 X10 F3000\nG90\nM84\n"));
+            break;
+        
+        case 2: // X_DOWN
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 X-10 F3000\nG90\nM84\n"));
+            break;
+
+        case 3: // Y_UP
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 Y10 F3000\nG90\nM84\n"));
+            break;
+
+        case 4: // Y_DOWN
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 Y-10 F3000\nG90\nM84\n"));
+            break;
+
+        case 5: // Z_UP
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 Z-10 F600\nG90\nM84\n"));
+            break;
+        
+        case 6: // Z_DOWN
+            ep->Send(json_run_a_gcode("SET_KINEMATIC_POSITION Z=150\nSET_KINEMATIC_POSITION X=150\nSET_KINEMATIC_POSITION Y=150\n"));
+            ep->Send(json_run_a_gcode("G91\nG1 Z10 F600\nG90\nM84\n"));
+            break;
+        
+        default:
+            break;
+        }
+        unhomed_move_mode = 0;
         jump_to_move_pop_2 = false;
         page_to(TJC_PAGE_MOVE_POP_2);
     }
@@ -855,6 +893,7 @@ void refresh_page_auto_finish() {
 }
 
 void refresh_page_auto_moving() {
+    send_cmd_txt(tty_fd, "t5", "(" + std::to_string(printer_heater_bed_temperature) + "/" + std::to_string(printer_heater_bed_target) + ")");
     if (step_1 == true) {
         send_cmd_picc(tty_fd, "q0", "109");
         send_cmd_pco(tty_fd, "t1", "65535");
@@ -1696,26 +1735,32 @@ void move_home() {
 
 void move_x_decrease() {
     ep->Send(move(AXIS_X, "-" + std::to_string(printer_move_dist), 130));
+    unhomed_move_mode = 2;
 }
 
 void move_x_increase() {
     ep->Send(move(AXIS_X, "+" + std::to_string(printer_move_dist), 130));
+    unhomed_move_mode = 1;
 }
 
 void move_y_decrease() {
     ep->Send(move(AXIS_Y, "-" + std::to_string(printer_move_dist), 130));
+    unhomed_move_mode = 4;
 }
 
 void move_y_increase() {
     ep->Send(move(AXIS_Y, "+" + std::to_string(printer_move_dist), 130));
+    unhomed_move_mode = 3;
 }
 
 void move_z_decrease() {
     ep->Send(move(AXIS_Z, "-" + std::to_string(printer_move_dist), 10));
+    unhomed_move_mode = 5;
 }
 
 void move_z_increase() {
     ep->Send(move(AXIS_Z, "+" + std::to_string(printer_move_dist), 10));
+    unhomed_move_mode = 6;
 }
 
 bool get_filament_detected() {
@@ -2115,7 +2160,7 @@ void go_to_network() {
         scan_ssid_and_show();
         get_wlan0_status();
         if (strcmp(status_result.wpa_state, "COMPLETED") == 0) {
-            current_connected_ssid_name = status_result.ssid;       // 如果已经连接wifi，获取wifi的名字
+            current_connected_ssid_name = hex_to_utf8(status_result.ssid);       // 如果已经连接wifi，获取wifi的名字
         } else if (strcmp(status_result.wpa_state, "INACTIVE")) {
             current_connected_ssid_name.clear();                    // 如果没连接wifi，清除掉当前已连接wifi的名字
         }
@@ -2143,7 +2188,7 @@ void refresh_page_wifi_list() {
         if (0 == page_wifi_current_pages) {
             if (0 == i) {
                 if (strcmp(status_result.wpa_state, "COMPLETED") == 0) {
-                    send_cmd_txt(tty_fd, "t" + std::to_string(i+1), status_result.ssid);
+                    send_cmd_txt(tty_fd, "t" + std::to_string(i+1), hex_to_utf8(status_result.ssid));
                 } else {
                     send_cmd_txt(tty_fd, "t" + std::to_string(i+1), page_wifi_ssid_list[i]);
                 }
@@ -2496,7 +2541,10 @@ void level_mode_printing_print_file() {
 }
 
 void update_finished_tips() {
-    page_to(TJC_PAGE_UPDATE_FINISH);
+    // page_to(TJC_PAGE_UPDATE_FINISH);
+    sleep(5);
+    system("sync");
+    system("systemctl restart makerbase-client.service");
 }
 
 bool get_mks_oobe_enabled() {
@@ -2885,6 +2933,7 @@ void bed_calibrate() {
     if (manual_count == 4) {
         bed_offset = 0;
         printer_idle_timeout_state = "Printing";
+        ep->Send(json_run_a_gcode("ABORT\n"));
         ep->Send(json_run_a_gcode("M4030"));
         page_to(TJC_PAGE_BED_MOVING);
     }else if (manual_count == 3) {
@@ -3055,7 +3104,7 @@ void print_log() {
         system("bash -c 'cp /home/mks/klipper_logs/auto_update.log* /home/mks/gcode_files/sda1/QD_Log/'");
         system("bash -c 'cp /root/frp/frpc.log* /home/mks/gcode_files/sda1/QD_Log/'");
         system("bash -c 'cp /root/frp/frpc.*.log /home/mks/gcode_files/sda1/QD_Log/'");
-        system("cp /root/frp/frpc.toml /home/mks/gcode_files/sda1/QD_Log/frpc.toml");
+        system("cp /root/frp/frpc.toml /home/mks/gcode_files/sda1/QD_Log/server.cfg");
         page_to(TJC_PAGE_PRINT_LOG_S);
     }
 }
@@ -3228,16 +3277,15 @@ void go_to_showqr() {
     page_to(TJC_PAGE_SHOW_QR);
     if (strcmp(status_result.wpa_state, "COMPLETED") == 0 || mks_ethernet) {
         if (qr_refreshed == false) {
+            send_cmd_cp_close(tty_fd, "cp0");
             if (open_qr_refreshed == true || access("/home/mks/qrcode/qrcode.jpg", F_OK) == -1)
                 qrmessage = run_python_code("python3 /home/mks/qrcode/qrcode_QD.py 176\n");
             std::cout << "qrmessage:" << qrmessage << std::endl;
             if (qrmessage.find("Missing or invalid") != -1) {
                 send_cmd_txt(tty_fd, "t4", qrmessage);
                 send_cmd_vis(tty_fd, "t4", "1");
-                send_cmd_cp_close(tty_fd, "cp0");
             } else if (qrmessage.find("No") != -1) {
                 send_cmd_vis(tty_fd, "t4", "1");
-                send_cmd_cp_close(tty_fd, "cp0");
             } else {
                 open_qr_refreshed = true;
                 refresh_files_list_picture("/home/mks/qrcode/qrcode.jpg", 176, 0);
@@ -3582,4 +3630,21 @@ void set_mks_ethernet(int target) {
     mksini_save();
     mksini_free();
     mks_ethernet = target;
+}
+
+std::string hex_to_utf8(const std::string& hex) {
+    std::ostringstream utf8;
+    size_t i = 0;
+    while (i < hex.size()) {
+        if (i + 3 < hex.size() && hex[i] == '\\' && hex[i + 1] == 'x') {
+            std::string hex_byte = hex.substr(i + 2, 2);
+            int value;
+            std::istringstream(hex_byte) >> std::hex >> value;
+            utf8 << static_cast<char>(value);
+            i += 4;
+        } else {
+            utf8 << hex[i++];
+        }
+    }
+    return utf8.str();
 }
