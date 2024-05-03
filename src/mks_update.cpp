@@ -416,6 +416,8 @@ void start_update()
         system("systemctl stop moonraker.service\n");
         system("find /home/mks/gcode_files -maxdepth 1 -type d ! -name sd* -a ! -name '.*' | grep gcode_files/ | xargs rm -rf");
         system("cp /home/mks/gcode_files/sda1/QD_Update/QD_gcode/*.gcode /home/mks/gcode_files; chmod 777 /home/mks/gcode_files/*.gcode; sync");
+        sleep(3);
+        system("systemctl restart moonraker.service\n");
     }
 
     // 检测到UI文件
@@ -435,8 +437,7 @@ void start_update()
 
                     if (!factory_mode) {
                         command += "mv " + filePath + " " + filePath + ".bak; ";
-                    }
-                    
+                    }  
                     command += "sync";
                     system(command.c_str());
                     break; // 每次更新只处理一个UI文件
@@ -460,7 +461,7 @@ void start_update()
             {
                 std::string filename = entry->d_name;
                 if (filename.rfind(".bak") != std::string::npos) continue;
-                if (filename.find("QD_Q1_PATCH") == 0 || filename.find("QD_Q1_SOC") == 0 || filename.find("QD_Mate3_SOC") == 0)
+                if (filename.find("QD_Q1_PATCH") == 0 || filename.find("QD_Q1_SOC") == 0 || filename.find("QD_Mates3_SOC") == 0)
                 {
                     std::string file_path = base_path + filename;
                     std::string command = "mv " + file_path + " " + base_path + "mks.deb; dpkg -i --force-overwrite " + base_path + "mks.deb;";
@@ -472,7 +473,6 @@ void start_update()
                     {
                         new_file_name += ".bak";
                     }
-
                     command = "mv " + base_path + "mks.deb " + new_file_name + "; sync";
                     system(command.c_str());
                 }

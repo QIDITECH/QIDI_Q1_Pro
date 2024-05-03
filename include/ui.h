@@ -420,6 +420,15 @@
 
 #define TJC_PAGE_INSTALLING                 90
 
+#define TJC_PAGE_AUTO_WARNING               91
+#define TJC_PAGE_AUTO_WARNING_YES           0x00
+
+#define TJC_PAGE_CALIBRATE_WARNING          92
+#define TJC_PAGE_CALIBRATE_WARNING_NEXT     0x00
+#define TJC_PAGE_CALIBRATE_WARNING_BACK     0x01
+
+#define TJC_PAGE_RE_PRINTING                93
+
 void parse_cmd_msg_from_tjc_screen(char *cmd);
 void page_to(int page_id);
 void tjc_event_clicked_handler(int page_id, int widget_id, int type_id);
