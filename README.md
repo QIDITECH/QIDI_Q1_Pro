@@ -8,19 +8,26 @@ QIDI_Q1_Pro is a server-side application designed specifically for the Q1_Pro mo
 For convenience, QIDI provides version-specific packaged files. Please download the necessary compressed package file prefixed with "Q1_Pro." We offer several versions of the source code tailored to different needs; select the appropriate branch for download, with each branch name reflecting the corresponding version.
 
 
-## Update Content for Version 4.4.18
+## Update Content for Version 4.4.19
 
 **Note:** After updating, the Klipper configuration file will be replaced. The previous configuration file will be backed up as `printer_{datetime}.cfg`, printer recalibration will be required.
 
-**1.** Added port 80 to Fluidd.
+**1.** Modified platform calibration logic
 
-**2.** Fixed the issue where power failure resume could not work.
+During platform tilt calibration, the machine performs a sensorless homing downwards to ensure the heights of the left and right Z axes are consistent.
 
-**3.** Fixed the issue with USB device unmounting failing in certain cases.
+**2.** Optimized Gcode processing logic
 
-**4.** Added Ethernet switching feature.
+We have increased the processing priority of certain Gcodes, such as SET_GCODE_OFFSET, to ensure they are executed immediately upon input. However, due to the presence of a move queue in the toolhead, which temporarily stores some parsed movements, the effect is not immediate. We plan to continue improving this in future versions.
 
-**5.** Added error prompt for QR code generation.
+**3.** Added functionality to move without homing
+
+We have noticed that in some cases, such as when printing is unexpectedly interrupted, users may want to move the Z-axis to facilitate the removal of a broken model upon machine restart. Typically, this would require homing before movement, but homing can be obstructed by the model. Therefore, we have added the capability to move the Z-axis without homing and provided corresponding prompts.
+
+**4.** Fixed issues with camera loading under specific circumstances
+**5.** Fixed display issues with connected WiFi name
+
+We also addressed an issue where the display of connected WiFi names containing Unicode characters appeared blank, and this has been fixed.
 
 **6.** Adjusted default parameters.
 
