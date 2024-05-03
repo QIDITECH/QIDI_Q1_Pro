@@ -234,7 +234,7 @@ void parse_gcode_response(nlohmann::json params) {
                 step_2 = true;
             }
         } else if (params0.find("echo: Detected unexpected interruption during the last print.") != -1 || params0.find("echo: Yes: RESUME_INTERRUPTED") != -1 || params0.find("echo: No: CLEAR_LAST_FILE") != -1) {
-            jump_to_resume_print = true;
+            // jump_to_resume_print = true;
         }
     }
 }

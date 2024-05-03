@@ -240,7 +240,7 @@ int main(int argc, char** argv) {
 			mks_get_version();
 			sleep(3);
 
-            send_cmd_val(tty_fd, "logo.version", "18"); // CLL 检测UI与SOC版本是否匹配4.4.18版本输出标记数字为18
+            send_cmd_val(tty_fd, "logo.version", "19"); // CLL 检测UI与SOC版本是否匹配4.4.19版本输出标记数字为19
             if (find_screen_tft_file == false) {
 				previous_page_id = TJC_PAGE_LOGO;
 				if (get_mks_oobe_enabled() == true) {

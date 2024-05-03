@@ -104,6 +104,8 @@ extern bool mks_file_parse_finished;
 extern int printer_extruder_temperature;
 extern int printer_extruder_target;
 
+extern int printer_heater_bed_target;
+
 extern std::string printer_webhooks_state;
 
 extern bool printer_ready;
@@ -642,18 +644,30 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             switch (widget_id)
             {
             case TJC_PAGE_ALL_TO_MAIN:
-                page_to(TJC_PAGE_MAIN);
+                if (printer_print_stats_state == "printing" || printer_print_stats_state == "paused") {
+                    page_to(TJC_PAGE_PRINTING);
+                    jump_to_print = false;
+                } else
+                    page_to(TJC_PAGE_MAIN);
                 break;
     
             case TJC_PAGE_ALL_TO_FILE_LIST:
                 break;
 
             case TJC_PAGE_ALL_TO_ADJUST:
-                go_to_adjust();
+                if (printer_print_stats_state == "printing" || printer_print_stats_state == "paused") {
+                    page_to(TJC_PAGE_PRINTING);
+                    jump_to_print = false;
+                } else
+                    go_to_adjust();
                 break;
 
             case TJC_PAGE_ALL_TO_SETTING:
-                go_to_setting();
+                if (printer_print_stats_state == "printing" || printer_print_stats_state == "paused") {
+                    page_to(TJC_PAGE_PRINTING);
+                    jump_to_print = false;
+                } else
+                    go_to_setting();
                 break;
 
             case TJC_PAGE_PREVIEW_BACK:
@@ -699,6 +713,11 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
                 break;
 
             case TJC_PAGE_PREVIEW_BED_LEVELING:
+                if (printer_print_stats_state == "printing" || printer_print_stats_state == "paused") {
+                    page_to(TJC_PAGE_PRINTING);
+                    jump_to_print = false;
+                    break;
+                }
                 if (printer_bed_leveling == true) {
                     printer_bed_leveling = false;
                 }else {
@@ -1369,8 +1388,7 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             break;
 
         case TJC_PAGE_LEVEL_MODE_BED_CALIBRATION:
-            manual_count = 4;
-            bed_calibrate();
+            page_to(TJC_PAGE_CALIBRATE_WARNING);
             break;
 
         case TJC_PAGE_LEVEL_MODE_TO_COMMON_SETTING:
@@ -1419,6 +1437,10 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
             break;
 
         case TJC_PAGE_AUTO_HEATERBED_NEXT:
+            if (printer_heater_bed_target < 35) {
+                page_to(TJC_PAGE_AUTO_WARNING);
+                break;
+            }
             auto_level_button_enabled = true;
             printer_idle_timeout_state = "Printing";
             start_auto_level();
@@ -2070,7 +2092,7 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
     case TJC_PAGE_RESUME_PRINT:
         switch(widget_id) {
             case TJC_PAGE_RESUME_PRINT_YES:
-                page_to(TJC_PAGE_MAIN);
+                page_to(TJC_PAGE_RE_PRINTING);
                 send_gcode("RESUME_INTERRUPTED\n");
                 break;
 
@@ -2339,6 +2361,35 @@ void tjc_event_clicked_handler(int page_id, int widget_id, int type_id) {
         case TJC_PAGE_AUTO_UNLOAD_TO_LOAD:
             load_mode = true;
             page_to(TJC_PAGE_PRE_HEAT);
+            break;
+        
+        default:
+            break;
+        }
+        break;
+
+    case TJC_PAGE_AUTO_WARNING:
+        switch (widget_id)
+        {
+        case TJC_PAGE_AUTO_WARNING_YES:
+            page_to(TJC_PAGE_AUTO_HEATERBED);
+            break;
+        
+        default:
+            break;
+        }
+        break;
+    
+    case TJC_PAGE_CALIBRATE_WARNING:
+        switch (widget_id)
+        {
+        case TJC_PAGE_CALIBRATE_WARNING_NEXT:
+            manual_count = 4;
+            bed_calibrate();
+            break;
+
+        case TJC_PAGE_CALIBRATE_WARNING_BACK:
+            page_to(TJC_PAGE_LEVEL_MODE);
             break;
         
         default:
