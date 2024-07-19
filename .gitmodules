@@ -1,0 +1,6 @@
+[submodule "moonraker"]
+	path = moonraker
+	url = https://github.com/QIDITECH/moonraker.git
+[submodule "klipper"]
+	path = klipper
+	url = https://github.com/QIDITECH/klipper.git
