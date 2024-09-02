@@ -18,11 +18,7 @@ For convenience, QIDI provides version-specific packaged files. Please download 
 3. Fixed the issue of USB not being read on startup
 
 4. Updated configuration files
-    
 
-We also addressed an issue where the display of connected WiFi names containing Unicode characters appeared blank, and this has been fixed.
-
-**6.** Adjusted default parameters.
 
 ## Detailed update process
 
