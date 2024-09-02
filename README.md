@@ -7,21 +7,18 @@ Q1 Pro is a 3D printer that uses Klipper as its foundation. This repository is u
 
 For convenience, QIDI provides version-specific packaged files. Please download the necessary compressed package file prefixed with "Q1_Pro." Select the appropriate branch for download, with each branch name reflecting the corresponding version.
 
-## V4.4.21 Update Content
+## V4.4.24 Update Content
 
 **Note:** After updating, the Klipper configuration file will be replaced. The previous configuration file will be backed up as `printer_{datetime}.cfg`, printer recalibration will be required.
 
-1. Fixed slow response to filament break detection
+1. Update the QIDI-LINK connection method to make the connection more secure.
 
-2. Fixed issue with configuration file not being backed up during update
+2. Added Fluidd account management module
 
-3. Adjusted silent print switch position
+3. Fixed the issue of USB not being read on startup
 
-4. Chamber light setting are no longer affected by the screen off state.
-
-5. Updated configuration file
+4. Updated configuration files
     
-    Enable chamber exhaust fan by default when chamber temp set to 0. Board fan associated with x y motor drive instead of z axis.
 
 We also addressed an issue where the display of connected WiFi names containing Unicode characters appeared blank, and this has been fixed.
 
