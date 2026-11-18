@@ -15,7 +15,6 @@ Important: After this firmware update, only the latest versions of QIDI Maker Ap
 
 1.Added recording management page with batch delete support
 
-2.Added support for new BOX firmware
     
 
 We also addressed an issue where the display of connected WiFi names containing Unicode characters appeared blank, and this has been fixed.
